@@ -7,7 +7,7 @@ using ExtCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Shared;
 
-namespace PlusExtension
+namespace MultiplyExtension
 {
   public class MultiplyExtension : ExtensionBase
   {
@@ -19,7 +19,7 @@ namespace PlusExtension
         {
           [1000] = services =>
           {
-            services.AddScoped(typeof(IOperation), typeof(MultiplyExtension));
+            services.AddScoped(typeof(IOperation), typeof(MultiplyOperation));
           }
         };
       }
