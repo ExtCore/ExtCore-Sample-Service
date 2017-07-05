@@ -1,7 +1,7 @@
 ﻿// Copyright © 2017 Dmitry Sikorsky. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
+using ExtCore.WebApplication.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -12,32 +12,35 @@ using Shared;
 
 namespace WebApplication
 {
-  public class Startup : ExtCore.WebApplication.Startup
+  public class Startup
   {
-    public Startup(IServiceProvider serviceProvider)
-      : base(serviceProvider)
-    {
-      this.serviceProvider.GetService<ILoggerFactory>().AddConsole();
+    private string extensionsPath;
 
+    public Startup(IHostingEnvironment hostingEnvironment, ILoggerFactory loggerFactory)
+    {
       IConfigurationBuilder configurationBuilder = new ConfigurationBuilder()
-        .SetBasePath(this.serviceProvider.GetService<IHostingEnvironment>().ContentRootPath)
-        .AddJsonFile("config.json", optional: true, reloadOnChange: true);
+        .SetBasePath(hostingEnvironment.ContentRootPath)
+        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
 
-      this.configurationRoot = configurationBuilder.Build();
+      IConfigurationRoot configurationRoot = configurationBuilder.Build();
+
+      this.extensionsPath = hostingEnvironment.ContentRootPath + configurationRoot["Extensions:Path"];
     }
 
-    public override void ConfigureServices(IServiceCollection services)
+    public void ConfigureServices(IServiceCollection services)
     {
-      base.ConfigureServices(services);
+      services.AddExtCore(this.extensionsPath);
     }
 
-    public override void Configure(IApplicationBuilder applicationBuilder)
+    public void Configure(IApplicationBuilder applicationBuilder, IOperation operation)
     {
-      base.Configure(applicationBuilder);
+      applicationBuilder.UseExtCore();
       applicationBuilder.Run(async (context) =>
-      {
-        await context.Response.WriteAsync(this.serviceProvider.GetService<IOperation>().Calculate(5, 10).ToString());
-      });
+        {
+
+          await context.Response.WriteAsync(operation.Calculate(5, 10).ToString());
+        }
+      );
     }
   }
 }
